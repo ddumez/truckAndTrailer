@@ -1,0 +1,110 @@
+\documentclass[12pt,a4paper,fleqn]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[overload]{empheq}
+\usepackage{fullpage}
+\usepackage{multicol}
+\usepackage{enumerate}
+\usepackage{graphicx}
+\usepackage[margin=10pt,font=small,labelfont=bf, labelsep=endash, justification=centering]{caption}
+
+\title{Model for the truck-and-freighter routing problem}
+\author{Dorian Dumez}
+
+\begin{document}
+
+\maketitle
+
+Les constantes et les données du problèmes sont notées :
+\begin{itemize}
+\item Le nœuds sont :
+\begin{itemize}
+\item le nœud 0 et $n+1$ est le dépôt
+\item $J = \{1,...,n\}$ est l'ensemble des clients, où :
+\begin{itemize}
+\item $J_S \subset J$ est les clients ne pouvant être livré que par le petit
+\item $J_B \subset J$ est les clients ne pouvant être livré que par le gros
+\end{itemize}
+\item $P$ est l'ensemble des parking
+\item $V = \{0, n+1\} \cup J \cup P$, $E = V^2$
+\end{itemize}
+\item les demandes et capacités sont :
+\begin{itemize}
+\item $\forall j \in J \text{ : } q_j$ la demande du client j
+\item $Q^B = \infty$ la capacité du gros
+\item $Q^S$ la capacité du petit
+\end{itemize}
+\item les coûts sont :
+\begin{itemize}
+\item $\forall (i,j) \in E \text{ : } c^B_{ij}$ le coût du trajet $(i,j)$ avec le gros (ou les deux ensembles)
+\item $\forall (i,j) \in E \text{ : } c^S_{ij}$ le coût du trajet $(i,j)$ avec le petit
+\end{itemize} 
+\item les trucs de restrictions temporelles sont :
+\begin{itemize}
+\item $\forall (i,j) \in E \text{ : } t_{ij}$ le temps de trajet de $(i,j)$ + le temps de service du client $j$ (si $j \in J$, sinon $+0$)
+\item $\forall j \in J \text{ : } [a_j,b_j]$ la fenêtre de temps du client j
+\item $e$ la date finale à laquelle tout le monde doit être rentré
+\end{itemize}
+\end{itemize}
+
+\clearpage
+Les variables sont :
+\begin{itemize}
+\item pour la gestion du tour du gros :
+\begin{itemize}
+\item $\forall (i,j) \in E \text{ : } X_{ij} \in \{0,1\}$ le gros vas de $i$ à $j$
+\item $\forall i \in V \backslash J_S \text{ : } S_i \in \mathbf{R}^+$ le gros commence à servir $i$ à cette date ou à être sur le parking
+\end{itemize}
+\item pour la gestion de la k-ieme tournée du petit($k \in ]K]$, $K$ max de tournées du petit):
+\begin{itemize}
+\item $\forall (i,j) \in E \text{ : } x_{ij}^k \in \{0,1\}$ le petit vas de $i$ à $j$
+\item $\forall i \in V \backslash J_S \text{ : } s_i^k \in \mathbf{R}^+$ le petit commence à servir $i$ à cette date ou à être sur le parking
+\end{itemize}
+\item pour la gestion de la synchronisation petit/gros :
+\begin{itemize}
+\item $\forall k \in ]K] \text{ : } \forall i \in P \text{ : } d^k_i \in \{0,1\}$ la tourné $k$ du petit démarre en $i$ 
+\item $\forall k \in ]K] \text{ : } \forall i \in P \text{ : } f^k_i \in \{0,1\}$ la tourné $k$ du petit fini en $i$
+\end{itemize}
+\end{itemize}
+
+\clearpage
+
+\begin{align}
+& \text{min } && \sum \limits_{(i,j) \in V} (c^B_{ij}X_{ij} + \sum \limits_{k \in ]K]}( c^S_{ij}x^k_{ij})) \\[10pt]
+& \text{sc }  && \forall j \in J \text{ : } \sum \limits_{i \in V}( X_{ij} + \sum \limits_{k \in ]K]} x^k_{ij} ) = 1 \label{tousservis} \\
+& && \forall i \in J \backslash (J_S \cup J_B) \text{ : } \forall k \in ]K] \text{ : } a_i \leqslant s_i^k \leqslant b_i \label{fenetrerestant1} \\
+& && \forall i \in J \backslash (J_S \cup J_B) \text{ : } a_i \leqslant S_i \leqslant b_i \label{fenetrerestant2} \\[30pt]
+& && \sum \limits_{j \in V} X_{0,j} = 1 \label{partirdudepot} \\
+& && \forall h \in J \cup P \text{ : } \sum \limits_{i \in V} (X_{ih}) - \sum \limits_{j \in V} (X_{hj}) = 0 \label{flotgros} \\
+& && \sum \limits_{i \in V} X_{i,n+1} = 1 \label{reveniraudepot} \\
+& && \forall (i,j) \in V \text{ : } S_i + t_{ij} - M(1-X_{ij}) \leqslant S_j \label{sequentialitegros} \\
+& && \forall i \in J_B \text{ : } a_i \leqslant S_i \leqslant b_i \label{fenetregros} \\[30pt]
+& && \forall k \in ]K] \text{ : } \forall j \in P \text{ : } d^k_j \leqslant \sum \limits_{i \in V} X_{ij} \label{separationvalide} \\
+& && \forall k \in ]K] \text{ : } \forall j \in P \text{ : } f^k_j \leqslant \sum \limits_{i \in V} X_{ij} \label{mergevalide} \\
+& && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \sum \limits_{j \in V} x^k_{ij} = d^k_i \label{partirdugros} \\
+& && \forall k \in ]K] \text{ : } \forall h \in J \text{ : } \sum \limits_{i \in V} (x_{ih}^k) - \sum \limits_{j \in V} (x_{hj}^k) = 0 \label{flotpetit} \\
+& && \forall k \in ]K] \text{ : } \forall j \in P \text{ : } \sum \limits_{i \in V} x^k_{ij} = f^k_i \label{reveniraugros} \\
+& && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } s_i^k \geqslant S_i - M.(1 - d_i^k) \label{datedebutpetit} \\
+& && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \forall j \in V \text{ : } s_i^k \leqslant S_j -t_{ij} + M.(1 - f^k_i) + M.(1 - X_{ij}) \label{datedefinpetit} \\
+& && \forall k \in ]K] \text{ : } \forall (i,j) \in V \text{ : } s_i^k + t_{ij} - M(1-x_{ij}^k) \leqslant s_j^k \label{sequentialitepetit} \\
+& && \forall k \in ]K] \text{ : } \forall i \in J_S \text{ : } a_i \leqslant s_i^k \leqslant b_i \label{fenetrepetit} \\
+& && \forall k \in ]K] \text{ : } \sum \limits_{j \in J} (q_j \sum \limits_{i \in V} x^k_{ij}) \leqslant Q_S  \label{capa} 
+\end{align}
+
+\clearpage
+
+Les contraintes sont :
+\begin{itemize}
+\item \ref{tousservis} : tous les clients sont servis
+\item \ref{fenetrerestant1}, \ref{fenetrerestant2}, \ref{fenetregros}, \ref{fenetrepetit} : les fenetre de temps des livraisons sont respectées
+\item \ref{partirdudepot} et \ref{reveniraudepot}: respectivement qu'il faut partir du dépôt et y revenir
+\item \ref{separationvalide}, \ref{partirdugros} et \ref{mergevalide}, \ref{reveniraugros} : respectivement que le petit doit partir et revenir au gros
+\item \ref{datedebutpetit} et \ref{datedefinpetit} : respectivement que les séparations et fusion se font bien au même moments
+\item \ref{flotgros} et \ref{flotpetit} : contrainte de flot respectivement sur les déplacements du gros et du petit
+\item \ref{capa} contrainte de capacité du petit 
+\end{itemize}
+
+\end{document}
