@@ -45,9 +45,12 @@ Les constantes et les données du problèmes sont notées :
 \end{itemize} 
 \item les trucs de restrictions temporelles sont :
 \begin{itemize}
-\item $\forall (i,j) \in E \text{ : } t_{ij}$ le temps de trajet de $(i,j)$ + le temps de service du client $j$ (si $j \in J$, sinon $+0$)
+\item $\forall (i,j) \in E \text{ : } t_{ij}$ le temps de trajet de $(i,j)$
 \item $\forall j \in J \text{ : } [a_j,b_j]$ la fenêtre de temps du client j
 \item $e$ la date finale à laquelle tout le monde doit être rentré
+\item $s$ la durée du service chez un client
+\item $a$ le temps d'assemblage des 2 véhicules
+\item $r$ le ratio de vitesse entre les 2 véhicules
 \end{itemize}
 \end{itemize}
 
@@ -105,8 +108,8 @@ Les contraintes sont :
 & && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \sum \limits_{j \in V} x^k_{ij} = d^k_i \label{partirdugros} \\
 & && \forall k \in ]K] \text{ : } \forall h \in J \text{ : } \sum \limits_{i \in V} (x_{ih}^k) - \sum \limits_{j \in V} (x_{hj}^k) = 0 \label{flotpetit} \\
 & && \forall k \in ]K] \text{ : } \forall j \in P \text{ : } \sum \limits_{i \in V} x^k_{ij} = f^k_i \label{reveniraugros} \\
-& && \forall k \in ]K] \text{ : } \forall i \in J \text{ : } \forall j \in V \text{ : } s_i + t_{ij} + s - M(1-x_{ij}^k) \leqslant s_j \label{sequentialitepetit1} \\
-& && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \forall j \in V \text{ : } s_i + t_{ij} + a - M(1-x_{ij}^k) \leqslant s_j \label{sequentialitepetit2} \\
+& && \forall k \in ]K] \text{ : } \forall i \in J \text{ : } \forall j \in V \text{ : } s_i + r*t_{ij} + s - M(1-x_{ij}^k) \leqslant s_j \label{sequentialitepetit1} \\
+& && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \forall j \in V \text{ : } s_i + r*t_{ij} + a - M(1-x_{ij}^k) \leqslant s_j \label{sequentialitepetit2} \\
 & && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } s_i^k \geqslant S_i - M.(1 - d_i^k) \label{datedebutpetit} \\
 & && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \forall j \in V \text{ : } s_i^k + a + t_{ij} \leqslant S_j + M.(1 - f^k_i) + M.(1 - X_{ij}) \label{datedefinpetit} \\
 & && \forall k \in ]K] \text{ : } \forall i \in J_S \text{ : } a_i \leqslant s_i^k \leqslant b_i \label{fenetrepetit} \\
@@ -115,16 +118,23 @@ Les contraintes sont :
 
 \clearpage
 
-Les variables que l'on peut fixer sont :
+Les variables que l'on peut/doit fixer sont :
 \begin{itemize}
-\item bla
+\item $\forall k \in ]K] \text{ : } \forall i \in V : x^k_{i0}, x^k_{0i}, x^k_{i,n+1}, x^k_{n+1,i}, s^k_0, s^k_{n+1} = 0$ car le petit n'interagit pas avec le dépôt
+\item $S_0 = 0$ et $S_{n+1} = e$ car il existe toujours une telle solution optimale
+\item $\forall i \in V \text{ : } X_{i0}, X_{n+1,i} = 0$ car on ne fait que partir de $0$ et que revenir en $n+1$
+\item $\forall k \in ]K] \text{ : } \forall p,p' \in P : x^k_{p,p'} = 0$ car un tel sous circuit est inutile
+\item $\forall k \in ]K] \text{ : } \forall i \in V : x^k_{ii}, X_{ii} = 0$ car cela ne sert à rien
+\item $\forall k \in ]K] \text{ : } \forall i \in J_B \text{ : } \forall j \in V \text{ : } x^k_{ij}, x^k_{ji} = 0$ car le petit n'a rien à faire chez les gros clients
+\item $\forall i \in J_S \text{ : } \forall j \in V \text{ : } X_{ij}, X_{ji} = 0$ car le gros n'a rien à faire chez les petits clients
+\item $X_{0,n+1} = 0$ si le problème n'est pas trivial
 \end{itemize}
 
-\clearpage
-
-Les symétries que l'on peut casser sont :
+Les grandes valeurs à fixer :
 \begin{itemize}
-\item bla
+\item $M = e$ car c'est le plus grand temps possible
+\item $K = |J_S|$ car on ne peut avoir besoin de plus de sous circuits
+\item le nombre de duplication des parkings : K
 \end{itemize}
 
 \clearpage
@@ -132,6 +142,17 @@ Les symétries que l'on peut casser sont :
 Les contraintes redondantes que l'on peut essayer sont :
 \begin{itemize}
 \item bla
+\end{itemize}
+
+
+Les symétries que l'on peut casser sont :
+\begin{itemize}
+\item pour les duplications de parkings : forcer à prendre en premiers les première duplications, et dans l'ordre $\Rightarrow$ contraintes sur les $S_i$ et les $X_{ij}$
+\item prendre les premiers sous tours et dans l'ordre :
+\begin{align}
+& \forall k \in ]K-1] \text{ : } \forall i,j \in P : d^k_i \geqslant d^{k+1}_j \label{symetriesoustours1} \\
+& \forall k \in ]K-1] \text{ : } \forall i,j \in P : s^k_i \leqslant s^{k+1}_j \label{symetriesoustours2}
+\end{align}
 \end{itemize}
 
 \end{document}

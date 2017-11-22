@@ -12,14 +12,14 @@ m = Model(solver=GLPKSolverMIP())
 #m = Model(solver=CplexSolver())
 
 #data
-n
+n #pas utilise ailleur
 J
 JS
 JB
 JR #J-JS-JB
 P
 V
-E
+E #utilise que dans la def des variables
 q[J]
 Qs
 cB[E]
@@ -165,14 +165,14 @@ for k = 1:K
     #sequentialitepetit1
     for i in J
         for j in V
-            @constraint(m, s[i] + s + t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
+            @constraint(m, s[i] + s + r*t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
         end
     end
 
     #sequentialitepetit2
     for i in P
         for j in V
-            @constraint(m, s[i] + a + t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
+            @constraint(m, s[i] + a + r*t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
         end
     end
 
