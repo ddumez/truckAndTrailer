@@ -59,10 +59,13 @@ end
 
 
 #contraintes
+
+#contrainte tousservis
 for j in J
     @constraint(m, sum(X[(i,j)] + sum(x[k][(i,j)] for k=1:K) for i in V) == 1 )
 end
 
+#fenetrerestant1
 for i in JR
     for k = 1:K
         @constraint(m, s[k][i] >= a[i])
@@ -70,80 +73,116 @@ for i in JR
     end
 end
 
+#fenetrerestant2
 for i in JR
     @constraint(m, S[i] >= a[i])
     @constraint(m, S[i] <= b[i])
 end
 
+#partirdudepot
 @constraint(m, sum(X[(0,j)] for j in V) == 1)
 
+#flotgros
 for h in union(J,P)
     @constraint(m, sum(X[(i,h)] for i in V) - sum(X[(h,j)] for j in V) == 0)
 end
 
+#reveniraudepot
 @constraint(m, sum(X[(i,n+1)] for i in V) == 1)
 
-for (i,j) in J
-    @constraint(m, S[i] + s + t[(i,j)] - M(1 - X[(i,j)]) <= S[j])
-end
-for (i,j) in P
-    @constraint(m, S[i] + a + t[(i,j)] - M(1 - X[(i,j)]) <= S[j])
-end
-for j in V
-    @constraint(m, S[0] - M(1 - X[(0,j)]) <= S[j])
-end
-for i in V
-    @constraint(m, S[i] - M(1 - X[(i,n+1)]) <= S[n+1])
+#sequentialitegros1
+for i in J
+    for j in V
+        @constraint(m, S[i] + s + t[(i,j)] - M(1 - X[(i,j)]) <= S[j])
+    end
 end
 
+#sequentialitegros2
+for i in P
+    for j in V
+        @constraint(m, S[i] + a + t[(i,j)] - M(1 - X[(i,j)]) <= S[j])
+    end
+end
+
+#sequentialitegros3
+for j in V
+    @constraint(m, S[0] + t[(0,j)] - M(1 - X[(0,j)]) <= S[j])
+end
+
+#sequentialitegros4
+for i in V
+    @constraint(m, S[i] + t[(i,n+1)] - M(1 - X[(i,n+1)]) <= S[n+1])
+end
+
+#findejournee
 @constraint(m, S[n+1] <= e)
 
+#fenetregros
 for i in JB
     @constraint(m, S[i] >= a[i])
     @constraint(m, S[i] <= b[i])
 end
 
-
+#toutes les contraintes du petit
 for k = 1:K
+    #separationvalide
     for j in P
         @constraint(m, d[k][j] <= sum(X[(i,j)] for i in V))
     end
 
+    #mergevalide
     for j in P
         @constraint(m, f[k][j] <= sum(X[(i,j)] for i in V))
     end
 
+    #partirdugros
     for i in P
         @constraint(m, sum(x[k][(i,j)] for j in V) == d[k][i])
     end
 
+    #flotpetit
     for h in J
         @constraint(m, sum(x[k][(i,h)] for i in V) - sum(x[k][(h,j)] for j in V) == 0)
     end
 
+    #reveniraugros
     for j in P
         @constraint(m, sum(x[k][(i,j)] for i in V) == f[k][i])
     end
 
+    #datedebutpetit
     for i in P
-        @constraint(m, s[k][i] >= S[i] + a - M(1 - d[k][i]))
+        @constraint(m, s[k][i] >= S[i] - M(1 - d[k][i]))
     end
 
+    #datedefinpetit
     for i in P
         for j in V
             @constraint(m, s[k][i] + a <= S[j] - t[(i,j)] + M(1-f[k][i]) + M(1-X[(i,j)]))
         end
     end
 
-    for (i,j) in J
-        @constraint(m, s[k][i] + s + r*t[(i,j)] - M(1 - X[(i,j)]) <= s[k][j])
+    #sequentialitepetit1
+    for i in J
+        for j in V
+            @constraint(m, s[i] + s + t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
+        end
     end
 
+    #sequentialitepetit2
+    for i in P
+        for j in V
+            @constraint(m, s[i] + a + t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
+        end
+    end
+
+    #fenetrepetit
     for i in JS
         @constraint(m, s[k][i] >= a[i])
         @constraint(m, s[k][i] <= b[i])
     end
 
+    #capa
     @constraint(m, sum(q[j] * sum(x[k][(i,j)] for i in V) for j in J ) <= Qs)
 end
 

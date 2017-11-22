@@ -71,20 +71,7 @@ Les variables sont :
 \end{itemize}
 \end{itemize}
 
-Les contraintes sont :
-\begin{itemize}
-\item \ref{tousservis} : tous les clients sont servis
-\item \ref{fenetrerestant1}, \ref{fenetrerestant2}, \ref{fenetregros}, \ref{fenetrepetit} : les fenêtre de temps des livraisons sont respectées
-\item \ref{sequentialitegros1}, \ref{sequentialitegros2}, \ref{sequentialitegros3}, \ref{sequentialitegros4} : les contrainte de sequentialité du gros dans les divers cas
-\item \ref{sequentialitepetit1}, \ref{sequentialitepetit2} : contrainte de sequentalité du petit
-\item \ref{findejournee} : la date maximale de retour au dépôt
-\item \ref{partirdudepot} et \ref{reveniraudepot} : respectivement qu'il faut partir du dépôt et y revenir
-\item \ref{separationvalide}, \ref{partirdugros} et \ref{mergevalide}, \ref{reveniraugros} : respectivement que le petit doit partir et revenir au gros
-\item \ref{datedebutpetit} et \ref{datedefinpetit} : respectivement que les séparations et fusion se font bien au même moments
-\item \ref{flotgros} et \ref{flotpetit} : contrainte de flot respectivement sur les déplacements du gros et du petit
-\item \ref{capa} : contrainte de capacité du petit 
-\end{itemize}
-
+\clearpage
 
 \begin{align}
 & \text{min } && \sum \limits_{(i,j) \in V} (c^B_{ij}X_{ij} + \sum \limits_{k \in ]K]}( c^S_{ij}x^k_{ij})) \\[10pt]
@@ -115,23 +102,18 @@ Les contraintes sont :
 
 \clearpage
 
-Les variables que l'on peut fixer sont :
+Les contraintes sont :
 \begin{itemize}
-\item bla
-\end{itemize}
-
-\clearpage
-
-Les symétries que l'on peut casser sont :
-\begin{itemize}
-\item bla
-\end{itemize}
-
-\clearpage
-
-Les contraintes redondantes que l'on peut essayer sont :
-\begin{itemize}
-\item bla
+\item \ref{tousservis} : tous les clients sont servis
+\item \ref{fenetrerestant1}, \ref{fenetrerestant2}, \ref{fenetregros}, \ref{fenetrepetit} : les fenêtre de temps des livraisons sont respectées
+\item \ref{sequentialitegros1}, \ref{sequentialitegros2}, \ref{sequentialitegros3}, \ref{sequentialitegros4} : les contrainte de sequentialité du gros dans les divers cas
+\item \ref{sequentialitepetit1}, \ref{sequentialitepetit2} : contrainte de sequentalité du petit
+\item \ref{findejournee} : la date maximale de retour au dépôt
+\item \ref{partirdudepot} et \ref{reveniraudepot} : respectivement qu'il faut partir du dépôt et y revenir
+\item \ref{separationvalide}, \ref{partirdugros} et \ref{mergevalide}, \ref{reveniraugros} : respectivement que le petit doit partir et revenir au gros
+\item \ref{datedebutpetit} et \ref{datedefinpetit} : respectivement que les séparations et fusion se font bien au même moments
+\item \ref{flotgros} et \ref{flotpetit} : contrainte de flot respectivement sur les déplacements du gros et du petit
+\item \ref{capa} : contrainte de capacité du petit 
 \end{itemize}
 
 \end{document}
