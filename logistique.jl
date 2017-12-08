@@ -12,7 +12,7 @@ m = Model(solver=GLPKSolverMIP())
 #m = Model(solver=CplexSolver())
 
 #data
-n #pas utilise ailleur
+n #pas utilise ailleurs
 J
 JS
 JB
@@ -20,18 +20,18 @@ JR #J-JS-JB
 P
 V
 E #utilise que dans la def des variables
-q[J]
+q #[J]
 Qs
-cB[E]
-cS[E]
-t[E]
-a[J]
-b[J]
+cB#[E]
+cS#[E]
+t#[E]
+a#[J]
+b#[J]
 e
 s #service duration
 a #temps d'assemblage
 r #speed ratio
-M
+M = e
 K
 
 #variable
