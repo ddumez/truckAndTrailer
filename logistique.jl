@@ -1,4 +1,3 @@
-
 using JuMP
 
 #pour résoudre avec GLPK
@@ -12,49 +11,31 @@ m = Model(solver=GLPKSolverMIP())
 #m = Model(solver=CplexSolver())
 
 #data
-n #pas utilise ailleurs
-J
-JS
-JB
-JR #J-JS-JB
-P
-V
-E #utilise que dans la def des variables
-q #[J]
-Qs
-cB#[E]
-cS#[E]
-t#[E]
-a#[J]
-b#[J]
-e
-s #service duration
-a #temps d'assemblage
-r #speed ratio
-M = e
-K
+include("parser.jl")
+
+(n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, s, ta, r, M, K) = parser("instanceNantes/instanceNantes.txt", "instanceNantes/distancematrix98.txt")
 
 #variable
 @variable(m, X[E], Bin)
 @variable(m, S[V] >= 0)
-@variable(m, x[1:K][E], Bin)
-@variable(m, s[1:K][V] >= 0)
-@variable(m, d[1:K][P], Bin)
-@variable(m, f[1:K][P], Bin)
+@variable(m, x[1:K, E], Bin)
+@variable(m, s[1:K, V] >= 0)
+@variable(m, d[1:K, P], Bin)
+@variable(m, f[1:K, P], Bin)
 
 #objectif
-@objectif(m, Min, sum(cB[ij] * X[ij] + sum(cS[ij] * x[k][ij] for k=1:K) for ij in E ))
+@objective(m, Min, sum(cB[ij] * X[ij] + sum(cS[ij] * x[k,ij] for k=1:K) for ij in E ))
 
 #variables fixées
 for k=1:K
     for i in V
-        JuMP.fix(x[k][(0,i)],0)
-        JuMP.fix(x[k][(i,0)],0)
-        JuMP.fix(x[k][(n+1,i)],0)
-        JuMP.fix(x[k][(i,n+1)],0)
+        JuMP.fix(x[k,(0,i)], false)
+        JuMP.fix(x[k,(i,0)], false)
+        JuMP.fix(x[k,(n+1,i)], false)
+        JuMP.fix(x[k,(i,n+1)], false)
     end
-    JuMP.fix(s[k][(0)],0)
-    JuMP.fix(s[k][n+1],0)
+    JuMP.fix(s[k,(0)], false)
+    JuMP.fix(s[k,n+1], false)
 end
 
 
@@ -62,14 +43,14 @@ end
 
 #contrainte tousservis
 for j in J
-    @constraint(m, sum(X[(i,j)] + sum(x[k][(i,j)] for k=1:K) for i in V) == 1 )
+    @constraint(m, sum(X[(i,j)] + sum(x[k,(i,j)] for k=1:K) for i in V) == 1 )
 end
 
 #fenetrerestant1
 for i in JR
     for k = 1:K
-        @constraint(m, s[k][i] >= a[i])
-        @constraint(m, s[k][i] <= b[i])
+        @constraint(m, s[k,i] >= a[i])
+        @constraint(m, s[k,i] <= b[i])
     end
 end
 
@@ -100,7 +81,7 @@ end
 #sequentialitegros2
 for i in P
     for j in V
-        @constraint(m, S[i] + a + t[(i,j)] - M(1 - X[(i,j)]) <= S[j])
+        @constraint(m, S[i] + ta + t[(i,j)] - M(1 - X[(i,j)]) <= S[j])
     end
 end
 
@@ -127,38 +108,38 @@ end
 for k = 1:K
     #separationvalide
     for j in P
-        @constraint(m, d[k][j] <= sum(X[(i,j)] for i in V))
+        @constraint(m, d[k,j] <= sum(X[(i,j)] for i in V))
     end
 
     #mergevalide
     for j in P
-        @constraint(m, f[k][j] <= sum(X[(i,j)] for i in V))
+        @constraint(m, f[k,j] <= sum(X[(i,j)] for i in V))
     end
 
     #partirdugros
     for i in P
-        @constraint(m, sum(x[k][(i,j)] for j in V) == d[k][i])
+        @constraint(m, sum(x[k,(i,j)] for j in V) == d[k,i])
     end
 
     #flotpetit
     for h in J
-        @constraint(m, sum(x[k][(i,h)] for i in V) - sum(x[k][(h,j)] for j in V) == 0)
+        @constraint(m, sum(x[k,(i,h)] for i in V) - sum(x[k,(h,j)] for j in V) == 0)
     end
 
     #reveniraugros
     for j in P
-        @constraint(m, sum(x[k][(i,j)] for i in V) == f[k][i])
+        @constraint(m, sum(x[k,(i,j)] for i in V) == f[k,i])
     end
 
     #datedebutpetit
     for i in P
-        @constraint(m, s[k][i] >= S[i] - M(1 - d[k][i]))
+        @constraint(m, s[k,i] >= S[i] - M(1 - d[k,i]))
     end
 
     #datedefinpetit
     for i in P
         for j in V
-            @constraint(m, s[k][i] + a <= S[j] - t[(i,j)] + M(1-f[k][i]) + M(1-X[(i,j)]))
+            @constraint(m, s[k,i] + ta <= S[j] - t[(i,j)] + M(1-f[k,i]) + M(1-X[(i,j)]))
         end
     end
 
@@ -172,18 +153,18 @@ for k = 1:K
     #sequentialitepetit2
     for i in P
         for j in V
-            @constraint(m, s[i] + a + r*t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
+            @constraint(m, s[i] + ta + r*t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
         end
     end
 
     #fenetrepetit
     for i in JS
-        @constraint(m, s[k][i] >= a[i])
-        @constraint(m, s[k][i] <= b[i])
+        @constraint(m, s[k,i] >= a[i])
+        @constraint(m, s[k,i] <= b[i])
     end
 
     #capa
-    @constraint(m, sum(q[j] * sum(x[k][(i,j)] for i in V) for j in J ) <= Qs)
+    @constraint(m, sum(q[j] * sum(x[k,(i,j)] for i in V) for j in J ) <= Qs)
 end
 
 #affichage
