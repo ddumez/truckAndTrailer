@@ -13,7 +13,6 @@ function parser(instance::String, distancier::String)
 	nS = 0
 	nB = 0
 	nR = 0
-	max = 0
 
 	#Recupération du nombre de chaque tableau
 	for i in 1:n
@@ -28,9 +27,6 @@ function parser(instance::String, distancier::String)
 	  end
 	  if(numbers[i,3]=="LS")
 	    nR = nR+1
-	  end
-	  if(numbers[i,1]>max && i>1)
-	    max=numbers[i,1]
 	  end
 	end
 
@@ -96,15 +92,16 @@ function parser(instance::String, distancier::String)
 
 	#ET LES ARETES
 	dist = readdlm(distancier)
-	nE = max*max
 
-	E = fill((0,0),nE)
+	E = Array{Tuple{Int,Int}}(0)
 
 	for i in V
 	  for j in V
-	    E[(i-1)*max+j] = (i,j)
+	    push!(E,(i,j))
 	  end
 	end
+	#arc de i a i inutile
+	filter(x-> x[1] != x[2], E)
 
 	t = Dict(E[i] => dist[E[i][1],E[i][2]] for i = 1:size(E)[1])
 	cB = Dict(E[i] => dist[E[i][1],E[i][2]] for i = 1:size(E)[1])

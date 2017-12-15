@@ -51,10 +51,6 @@ for j in J
 end
 
 #fenetrerestant1
-println("JR : ",JR," ", sizeof(JR)[1]," ", typeof(JR))
-println("a : ",a," ", sizeof(a)[1]," ", typeof(a))
-println("b : ",b," ", sizeof(b)[1]," ", typeof(b))
-println("K = ",K)
 for i in JR
     for k = 1:K
         @constraint(m, s[k,i] >= a[i])
@@ -82,25 +78,25 @@ end
 #sequentialitegros1
 for i in J
     for j in V
-        @constraint(m, S[i] + s + t[(i,j)] - M(1 - X[(i,j)]) <= S[j])
+        @constraint(m, S[i] + s + t[(i,j)] - M*(1 - X[(i,j)]) <= S[j])
     end
 end
 
 #sequentialitegros2
 for i in P
     for j in V
-        @constraint(m, S[i] + ta + t[(i,j)] - M(1 - X[(i,j)]) <= S[j])
+        @constraint(m, S[i] + ta + t[(i,j)] - M*(1 - X[(i,j)]) <= S[j])
     end
 end
 
 #sequentialitegros3
 for j in V
-    @constraint(m, 0 + t[(1,j)] - M(1 - X[(1,j)]) <= S[j])
+    @constraint(m, 0 + t[(1,j)] - M*(1 - X[(1,j)]) <= S[j])
 end
 
 #sequentialitegros4
 for i in V
-    @constraint(m, S[i] + t[(i,1)] - M(1 - X[(i,1)]) <= S[1])
+    @constraint(m, S[i] + t[(i,1)] - M*(1 - X[(i,1)]) <= S[1])
 end
 
 #findejournee
@@ -141,27 +137,27 @@ for k = 1:K
 
     #datedebutpetit
     for i in P
-        @constraint(m, s[k,i] >= S[i] - M(1 - d[k,i]))
+        @constraint(m, s[k,i] >= S[i] - M*(1 - d[k,i]))
     end
 
     #datedefinpetit
     for i in P
         for j in V
-            @constraint(m, s[k,i] + ta <= S[j] - t[(i,j)] + M(1-f[k,i]) + M(1-X[(i,j)]))
+            @constraint(m, s[k,i] + ta <= S[j] - t[(i,j)] + M*(1-f[k,i]) + M*(1-X[(i,j)]))
         end
     end
 
     #sequentialitepetit1
     for i in J
         for j in V
-            @constraint(m, s[i] + s + r*t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
+            @constraint(m, s[i] + s + r*t[(i,j)] - M*(1 - x[(i,j)]) <= s[j])
         end
     end
 
     #sequentialitepetit2
     for i in P
         for j in V
-            @constraint(m, s[i] + ta + r*t[(i,j)] - M(1 - x[(i,j)]) <= s[j])
+            @constraint(m, s[i] + ta + r*t[(i,j)] - M*(1 - x[(i,j)]) <= s[j])
         end
     end
 
