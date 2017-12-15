@@ -29,13 +29,17 @@ include("parser.jl")
 #variables fixées
 for k=1:K
     for i in V
-        JuMP.fix(x[k,(0,i)], false)
-        JuMP.fix(x[k,(i,0)], false)
-        JuMP.fix(x[k,(n+1,i)], false)
-        JuMP.fix(x[k,(i,n+1)], false)
+        JuMP.fix(x[k,(1,i)], false)
+        JuMP.fix(x[k,(i,1)], false)
+        for j in JB
+            JuMP.fix(x[k,(i,j)], false)
+            JuMP.fix(x[k,(j,i)], false)
+        end
     end
-    JuMP.fix(s[k,(0)], false)
-    JuMP.fix(s[k,n+1], false)
+    JuMP.fix(s[k,1], 0)
+    for j in JB
+        JuMP.fix(s[k,j], 0)
+    end
 end
 
 
@@ -47,6 +51,10 @@ for j in J
 end
 
 #fenetrerestant1
+println("JR : ",JR," ", sizeof(JR)[1]," ", typeof(JR))
+println("a : ",a," ", sizeof(a)[1]," ", typeof(a))
+println("b : ",b," ", sizeof(b)[1]," ", typeof(b))
+println("K = ",K)
 for i in JR
     for k = 1:K
         @constraint(m, s[k,i] >= a[i])
@@ -61,7 +69,7 @@ for i in JR
 end
 
 #partirdudepot
-@constraint(m, sum(X[(0,j)] for j in V) == 1)
+@constraint(m, sum(X[(1,j)] for j in V) == 1)
 
 #flotgros
 for h in union(J,P)
@@ -69,7 +77,7 @@ for h in union(J,P)
 end
 
 #reveniraudepot
-@constraint(m, sum(X[(i,n+1)] for i in V) == 1)
+@constraint(m, sum(X[(i,1)] for i in V) == 1)
 
 #sequentialitegros1
 for i in J
@@ -87,16 +95,16 @@ end
 
 #sequentialitegros3
 for j in V
-    @constraint(m, S[0] + t[(0,j)] - M(1 - X[(0,j)]) <= S[j])
+    @constraint(m, 0 + t[(1,j)] - M(1 - X[(1,j)]) <= S[j])
 end
 
 #sequentialitegros4
 for i in V
-    @constraint(m, S[i] + t[(i,n+1)] - M(1 - X[(i,n+1)]) <= S[n+1])
+    @constraint(m, S[i] + t[(i,1)] - M(1 - X[(i,1)]) <= S[1])
 end
 
 #findejournee
-@constraint(m, S[n+1] <= e)
+@constraint(m, S[1] <= e)
 
 #fenetregros
 for i in JB

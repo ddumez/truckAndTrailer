@@ -43,10 +43,15 @@ function parser(instance::String, distancier::String)
 	JB = fill(0,nB)
 	JR = fill(0,nR)
 	P = fill(0,nP)
+#= Ce doit etre des dictionaires car il y a des trous	
 	V = collect(1:max) #plus 1 parceque D
 	q = fill(0,nS + nB + nR)
 	a = fill(0,nS + nB + nR)
 	b = fill(numbers[1,4],nS + nB + nR) #s
+=#
+	q = Dict()
+	a = Dict()
+	b = Dict()
 
 	cJ = 1
 	cP = 1
@@ -59,9 +64,14 @@ function parser(instance::String, distancier::String)
 	for i in 2:n
 	  if(numbers[i,3]=="S" || numbers[i,3]=="L" || numbers[i,3]=="LS")
 	    J[cJ] = numbers[i,1]
+	    #=
 	    q[cJ] = numbers[i,2]
 	    a[cJ] = numbers[i,6]
 	    b[cJ] = b[cJ]+numbers[i,6]
+	    =#
+	    push!(q, numbers[i,1] => numbers[i,2])
+	    push!(a, numbers[i,1] => numbers[i,6])
+	    push!(b, numbers[i,1] => numbers[i,6] + numbers[1,4])
 	    cJ = cJ + 1
 	  end
 	  if(numbers[i,3]=="P")
@@ -82,17 +92,16 @@ function parser(instance::String, distancier::String)
 	  end
 	end
 
+	V = union(J,P,[1])
+
 	#ET LES ARETES
 	dist = readdlm(distancier)
 	nE = max*max
 
 	E = fill((0,0),nE)
-	cB = fill(0,nE)
-	cS = fill(0,nE)
-	t = fill(0,nE)
 
-	for i in 1:max
-	  for j in 1:max
+	for i in V
+	  for j in V
 	    E[(i-1)*max+j] = (i,j)
 	  end
 	end
@@ -106,9 +115,6 @@ function parser(instance::String, distancier::String)
 	#constantes grande a fixer
 	M = e
 	K = nS
-
-	#ajout du duplica du depos en tant que n+1
-	#push!(V, n+1)
 
 	return (n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, s, ta, r, M, K)
 end
