@@ -137,10 +137,18 @@ function parser(instance::String, distancier::String)
 					push!(cB,(copieinumk,j) => cB[(i,j)])
 					push!(cS,(copieinumk,j) => cS[(i,j)])
 				end
+				if (j,i) in E
+					push!(E,(j,copieinumk))
+					push!(t,(j,copieinumk) => t[(j,i)])
+					push!(cB,(j,copieinumk) => cB[(j,i)])
+					push!(cS,(j,copieinumk) => cS[(j,i)])
+				end
 			end
 		end 
 	end
 	P = copy(P2)
+
+	print(P)
 
 	return (n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, s, ta, r, M, K)
 end
