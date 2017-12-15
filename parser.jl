@@ -116,14 +116,13 @@ function parser(instance::String, distancier::String)
 	cS = Dict(E[i] => dist[E[i][1],E[i][2]]*r for i = 1:size(E)[1])
 	#println(cS[(84,98)])
 	
-
 	#Copie des parkings
 	P2 = copy(P)
 
 	compte = max+1
 
 	for i in P
-		for k in 1:K
+		for k in 1:(K-1)
 			copieinumk = compte
 			compte = compte+1
 			push!(P2,copieinumk)
@@ -135,20 +134,18 @@ function parser(instance::String, distancier::String)
 					push!(cB,(copieinumk,j) => cB[(i,j)])
 					push!(cS,(copieinumk,j) => cS[(i,j)])
 				end
-				if (j,i) in E
-					push!(E,(j,copieinumk))
-					push!(t,(j,copieinumk) => t[(j,i)])
-					push!(cB,(j,copieinumk) => cB[(j,i)])
-					push!(cS,(j,copieinumk) => cS[(j,i)])
+				if copieinumk != j
+					if (j,i) in E
+						push!(E,(j,copieinumk))
+						push!(t,(j,copieinumk) => t[(j,i)])
+						push!(cB,(j,copieinumk) => cB[(j,i)])
+						push!(cS,(j,copieinumk) => cS[(j,i)])
+					end
 				end
 			end
-		end 
+		end
 	end
 	P = copy(P2)
 
-
-	#arc de i a i inutile
-	filter(x-> x[1] != x[2], E)
-
-	return (n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, s, ta, r, M, K)
+	return (n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, s, ta, r, M, K, max)
 end

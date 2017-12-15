@@ -146,9 +146,9 @@ Les symétries que l'on peut casser sont :
 \item pour les duplications de parkings : forcer à prendre en premiers les première duplications, et dans l'ordre $\Rightarrow$ contraintes sur les $S_i$ et les $X_{ij}$
 \item prendre les premiers sous tours et dans l'ordre :
 \begin{align}
-& \forall k \in ]K-1] \text{ : } \forall i,j \in P : d^k_i \geqslant d^{k+1}_j \label{symetriesoustours1} \\
 & \forall k \in ]K-1] \text{ : } \forall i,j \in P : s^k_i \leqslant s^{k+1}_j \label{symetriesoustours2}
 \end{align}
+\item utiliser les parking dans l'ordre,i.e copie 1 après l'original, copie 2 après copie 1 ... Autant sur le fait d'utiliser le parking (donc sur les $\sum \limits_{k = 1}^K d_i^k$) que sur leurs dates d'utilisations
 \end{itemize}
 
 \end{document}
