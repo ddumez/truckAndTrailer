@@ -39,7 +39,7 @@ function parser(instance::String, distancier::String)
 
 	#constantes grandes a fixer
 	M = e
-	K = nS
+	K = floor(Int,nS/2)
 
 	#Construction de JS and co
 	J = fill(0,nS + nB + nR)
@@ -110,8 +110,6 @@ function parser(instance::String, distancier::String)
 	    push!(E,(i,j))
 	  end
 	end
-	#arc de i a i inutile
-	filter(x-> x[1] != x[2], E)
 
 	t = Dict(E[i] => dist[E[i][1],E[i][2]] for i = 1:size(E)[1])
 	cB = Dict(E[i] => dist[E[i][1],E[i][2]] for i = 1:size(E)[1])
@@ -148,7 +146,9 @@ function parser(instance::String, distancier::String)
 	end
 	P = copy(P2)
 
-	print(P)
+
+	#arc de i a i inutile
+	filter(x-> x[1] != x[2], E)
 
 	return (n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, s, ta, r, M, K)
 end

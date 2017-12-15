@@ -13,7 +13,8 @@ m = Model(solver=GLPKSolverMIP())
 #data
 include("parser.jl")
 
-(n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, s, ta, r, M, K) = parser("instanceNantes/instanceNantes.txt", "instanceNantes/distancematrix98.txt")
+#(n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, sd, ta, r, M, K) = parser("instanceNantes/instanceNantes.txt", "instanceNantes/distancematrix98.txt")
+(n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, sd, ta, r, M, K) = parser("instanceNantes/test.txt", "instanceNantes/distancematrix98.txt")
 
 #variable
 @variable(m, X[E], Bin)
@@ -42,6 +43,12 @@ for k=1:K
     end
 end
 
+for i in V
+    for j in JS
+        JuMP.fix(X[(i,j)], false)
+        JuMP.fix(X[(j,i)], false)
+    end
+end
 
 #contraintes
 
@@ -78,7 +85,7 @@ end
 #sequentialitegros1
 for i in J
     for j in V
-        @constraint(m, S[i] + s + t[(i,j)] - M*(1 - X[(i,j)]) <= S[j])
+        @constraint(m, S[i] + sd + t[(i,j)] - M*(1 - X[(i,j)]) <= S[j])
     end
 end
 
@@ -132,7 +139,7 @@ for k = 1:K
 
     #reveniraugros
     for j in P
-        @constraint(m, sum(x[k,(i,j)] for i in V) == f[k,i])
+        @constraint(m, sum(x[k,(i,j)] for i in V) == f[k,j])
     end
 
     #datedebutpetit
@@ -150,14 +157,14 @@ for k = 1:K
     #sequentialitepetit1
     for i in J
         for j in V
-            @constraint(m, s[i] + s + r*t[(i,j)] - M*(1 - x[(i,j)]) <= s[j])
+            @constraint(m, s[k,i] + sd + r*t[(i,j)] - M*(1 - x[k,(i,j)]) <= s[k,j])
         end
     end
 
     #sequentialitepetit2
     for i in P
         for j in V
-            @constraint(m, s[i] + ta + r*t[(i,j)] - M*(1 - x[(i,j)]) <= s[j])
+            @constraint(m, s[k,i] + ta + r*t[(i,j)] - M*(1 - x[k,(i,j)]) <= s[k,j])
         end
     end
 
