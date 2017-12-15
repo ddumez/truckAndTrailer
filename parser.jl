@@ -8,11 +8,12 @@ function parser(instance::String, distancier::String)
 	ta = numbers[1,5]
 	r = numbers[1,2]
 
-	n = size(numbers)[1] -1
+	n = size(numbers)[1]
 	nP = 0
 	nS = 0
 	nB = 0
 	nR = 0
+	max = 0
 
 	#Recupération du nombre de chaque tableau
 	for i in 1:n
@@ -27,11 +28,18 @@ function parser(instance::String, distancier::String)
 	  end
 	  if(numbers[i,3]=="LS")
 	    nR = nR+1
+	  end 
+	  if(numbers[i,1]>max && i>1)
+	    max = numbers[i,1]
 	  end
 	end
 
 	#println(nP," ",nS," ",nB," ",nR)
 	#println(max," ",n)
+
+	#constantes grandes a fixer
+	M = e
+	K = nS
 
 	#Construction de JS and co
 	J = fill(0,nS + nB + nR)
@@ -55,6 +63,8 @@ function parser(instance::String, distancier::String)
 	cB = 1
 	cR = 1
 	cV = 1
+
+	retenue = max+1
 
 	#Recupération du nombre de chaque tableau
 	for i in 2:n
@@ -107,11 +117,30 @@ function parser(instance::String, distancier::String)
 	cB = Dict(E[i] => dist[E[i][1],E[i][2]] for i = 1:size(E)[1])
 	cS = Dict(E[i] => dist[E[i][1],E[i][2]]*r for i = 1:size(E)[1])
 	#println(cS[(84,98)])
+	
 
+	#Copie des parkings
+	P2 = copy(P)
 
-	#constantes grande a fixer
-	M = e
-	K = nS
+	compte = max+1
+
+	for i in P
+		for k in 1:K
+			copieinumk = compte
+			compte = compte+1
+			push!(P2,copieinumk)
+			push!(V,copieinumk)
+			for j in V
+				if (i,j) in E
+					push!(E,(copieinumk,j))
+					push!(t,(copieinumk,j) => t[(i,j)])
+					push!(cB,(copieinumk,j) => cB[(i,j)])
+					push!(cS,(copieinumk,j) => cS[(i,j)])
+				end
+			end
+		end 
+	end
+	P = copy(P2)
 
 	return (n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, s, ta, r, M, K)
 end
