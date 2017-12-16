@@ -205,11 +205,22 @@ for k = 1:K
 
     #formulation forte des capacites a base de cover maximaux
     for cur in R
-        for i in filter(x-> !(x in cur) ,union(JS,JR))
-            @constraint(m, sum(sum(x[k,(h,j)] for j in V) for h in union(cur,[i])) <= size(cur)[1])
+        JinCur = map(u->vcat(JS,JR)[u], filter(v->(cur[v] == 1), 1:size(cur)[1])) #indice des clients dans cur
+        for i in filter(u-> (u in JinCur) ,union(JS,JR))
+            @constraint(m, sum(sum(x[k,(h,j)] for j in V) for h in union(JinCur,[i])) <= size(JinCur)[1])
         end
     end
 
+    #contrainte redondante interdisant le sous tours si aucun départ n'est fixé
+#=
+    for i in P
+        @constraint(m, f[k,i] <= sum(d[k,h] for h in P))
+    end
+
+    for ij in E
+        @constraint(m, x[k,ij] <= sum(d[k,h] for h in P))
+    end
+=#
 end
 
 

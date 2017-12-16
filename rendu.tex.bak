@@ -18,6 +18,11 @@
 
 \maketitle
 
+
+\section{Modèle}
+
+\subsection{Données du problème}
+
 Les constantes et les données du problèmes sont notées :
 \begin{itemize}
 \item Le nœuds sont :
@@ -54,7 +59,8 @@ Les constantes et les données du problèmes sont notées :
 \end{itemize}
 \end{itemize}
 
-\clearpage
+\subsection{Modèle de base}
+
 Les variables sont :
 \begin{itemize}
 \item pour la gestion du tour du gros :
@@ -115,9 +121,9 @@ Les contraintes sont :
 & && \forall k \in ]K] \text{ : } \sum \limits_{j \in J} (q_j \sum \limits_{i \in V} x^k_{ij}) \leqslant Q_S \label{capa}
 \end{align}
 
-\clearpage
+\subsection{Ajouts au modèle}
 
-Les variables que l'on doit fixer sont :
+Les variables que l'on fixe (sans celles ci le modèle est faut) sont :
 \begin{itemize}
 \item $\forall k \in ]K] \text{ : } \forall i \in V : x^k_{i1}, x^k_{1i}, s^k_1 = 0$ car le petit n'interagit pas avec le dépôt
 \item $\forall i \in V \text{ : }$ enlever $(i,i)$ de V
@@ -133,15 +139,13 @@ Les grandes valeurs à fixer :
 \item le nombre de duplication des parkings : 2K, car un petit peu finir sa tourné sur le même parking sur lequel il l'a commencé et que pendant ce temps le gros ai aussi fait une tournée
 \end{itemize}
 
-\clearpage
-
 Les contraintes redondantes sont :
 \begin{itemize}
-\item Une contrainte de capacité plus forte pour le petit basé sur les cover maximaux de knapska
+\item Une contrainte de capacité plus forte pour le petit basé sur les cover maximaux de knapsack. Un cover est un ensemble d'objet qui respecte la capacité, il est dit maximal si lui ajouter un objet fait dépasser la capacité. On adapte cela à chaque tournée de petit en générant des covers maximaux de clients. Alors pour chaque covers et chaque objet qui ne s'y trouve pas on interdit que le petit se rende (dans la même tourné) dans cet ensemble de client.
+\item On interdit toute action dans un sous-tour du petit si aucun départ n'est fixé. C'est à dire que si $\sum \limits_{i \in P}d_i^k = 0$ pour un $k$ donné alors $\forall i \in P \text{ : } f_i^k = 0$ et $\forall (i,j) \in E \text{ : } x^k_{ij} = 0$. Malheureusement cette contrainte augmente les temps de résolutions.
 \end{itemize}
 
-
-Les symétries que l'on peut casser sont :
+Les symétries que l'on casse sont :
 \begin{itemize}
 \item pour les duplications de parkings : forcer à prendre en premiers les première duplications, et dans l'ordre $\Rightarrow$ contraintes sur les $S_i$ et les $X_{ij}$
 \item prendre les premiers sous tours et dans l'ordre :
@@ -158,5 +162,33 @@ Remarque : avec ce modèle quand le petit véhicule rejoint le gros à un parkin
 \bigskip
 
 Remarque : la fonction objectif ne prend pas en compte l'heure à laquelle l'équipe rentre au dépôt. Par conséquent si la contrainte de taille de la journée n'est pas restrictive des temps d’attentes très larges restent optimaux.
+
+\section{Tests}
+
+\begin{table}[!h]
+\centering
+\begin{tabular}{|*{6}{c|}}
+  \hline
+  instance & $|J|$ & $|JS|$ & $|JR|$ & $|P|$ & temps \\
+  \hline
+  1 & 6 & 3 & 3 & 2 & 0.7 \\
+  2 & 8 & 4 & 4 & 3 & 4.51 \\
+  3 & 10 & 5 & 5 & 4 & 16.56 \\
+  4 & 12 & 6 & 6 & 5 & $>600$ \\
+  5 & 12 & 6 & 6 & 2 & $>600$ \\
+  6 & 7  & 5 & 2 & 5 & $>600$\\
+  7 & 8  & 2 & 6 & 5 & 2.29 \\
+  8 & 12 & 2 & 10 & 5 &  \\
+  \hline
+\end{tabular}
+\caption{temps d’exécution de Cplex en seconde selon les paramètres}
+\label{temps d'execution}
+\end{table}
+
+Les expérimentation ont été faite avec julia 0.6 sur un asus rog G75VX-T4113H tournant avec un processeur Intel Core i7-3630QM (2.4 GHz - Cache 6 Mo) et une mémoire vive DDR3 de 8Go.\\
+
+On note que Cplex trouve asse vite une solution qu'il va conserver jusqu’à la fin. On peut donc supposer qu'il peine à démontrer l'optimalité de sa solution. Cela laisse à penser qu'il faudrait rajouter des contraintes pour casser d'autres symétries ou encore rajouter des inégalités valides pour améliorer la relaxation linéaire.
+
+Même si la capacité du modèle à gérer des clients pour les 2 camions plutôt que ceux réservé au petit est plus importante on note qu'avec plus de 8 clients dans $J_R$ la résolution prend plus de 10mn. Il y a donc du travail autour de tous les clients mais surtout autour de ceux de $J_S$.
 
 \end{document}

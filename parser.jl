@@ -111,6 +111,18 @@ function parser(instance::String, distancier::String)
 	  end
 	end
 
+  #corection de la matrice des distances
+  for h in V
+    dist[h,h] = 0 #distance nulle entre le point et lui meme
+    for i in V
+      dist[h,i] = dist[i,h] #symetrie
+      for j in V
+        dist[i,j] = minimum([dist[i,j], dist[i,h] + dist[h,j]]) #inegalité triangulaire
+      end
+    end
+  end
+
+  #calcul des cout et temps de parcours
 	t = Dict(E[i] => dist[E[i][1],E[i][2]] for i = 1:size(E)[1])
 	cB = Dict(E[i] => dist[E[i][1],E[i][2]] for i = 1:size(E)[1])
 	cS = Dict(E[i] => dist[E[i][1],E[i][2]]*r for i = 1:size(E)[1])
