@@ -22,7 +22,7 @@ Les constantes et les données du problèmes sont notées :
 \begin{itemize}
 \item Le nœuds sont :
 \begin{itemize}
-\item le nœud 0 et $n+1$ est le dépôt
+\item le nœud $1$ est le dépôt 
 \item $J = \{1,...,n\}$ est l'ensemble des clients, où :
 \begin{itemize}
 \item $J_S \subset J$ est les clients ne pouvant être livré que par le petit
@@ -48,8 +48,8 @@ Les constantes et les données du problèmes sont notées :
 \item $\forall (i,j) \in E \text{ : } t_{ij}$ le temps de trajet de $(i,j)$
 \item $\forall j \in J \text{ : } [a_j,b_j]$ la fenêtre de temps du client j
 \item $e$ la date finale à laquelle tout le monde doit être rentré
-\item $s$ la durée du service chez un client
-\item $a$ le temps d'assemblage des 2 véhicules
+\item $sd$ la durée du service chez un client
+\item $ta$ le temps d'assemblage des 2 véhicules (fixé au même temps que la durée d'un service chez un client)
 \item $r$ le ratio de vitesse entre les 2 véhicules
 \end{itemize}
 \end{itemize}
@@ -60,7 +60,7 @@ Les variables sont :
 \item pour la gestion du tour du gros :
 \begin{itemize}
 \item $\forall (i,j) \in E \text{ : } X_{ij} \in \{0,1\}$ le gros vas de $i$ à $j$
-\item $\forall i \in V \text{ : } S_i \in \mathbf{R}^+$ le gros commence à servir $i$ à cette date ou à être sur le parking
+\item $\forall i \in V \text{ : } S_i \in \mathbf{R}^+$ le gros commence à servir $i$ à cette date ou à être sur le parking. $S_1$ est un cas particulier, il représente la date de retour au dépôt
 \end{itemize}
 \item pour la gestion de la k-ieme tournée du petit($k \in ]K]$, $K$ max de tournées du petit):
 \begin{itemize}
@@ -78,7 +78,7 @@ Les contraintes sont :
 \begin{itemize}
 \item \ref{tousservis} : tous les clients sont servis
 \item \ref{fenetrerestant1}, \ref{fenetrerestant2}, \ref{fenetregros}, \ref{fenetrepetit} : les fenêtre de temps des livraisons sont respectées
-\item \ref{sequentialitegros1}, \ref{sequentialitegros2}, \ref{sequentialitegros3}, \ref{sequentialitegros4} : les contrainte de sequentialité du gros dans les divers cas
+\item \ref{sequentialitegros1}, \ref{sequentialitegros2}, \ref{sequentialitegros3} : les contrainte de sequentialité du gros dans les divers cas
 \item \ref{sequentialitepetit1}, \ref{sequentialitepetit2} : contrainte de sequentalité du petit
 \item \ref{findejournee} : la date maximale de retour au dépôt
 \item \ref{partirdudepot} et \ref{reveniraudepot} : respectivement qu'il faut partir du dépôt et y revenir
@@ -94,54 +94,50 @@ Les contraintes sont :
 & \text{sc }  && \forall j \in J \text{ : } \sum \limits_{i \in V}( X_{ij} + \sum \limits_{k \in ]K]} x^k_{ij} ) = 1 \label{tousservis} \\
 & && \forall i \in J_R \text{ : } \forall k \in ]K] \text{ : } a_i \leqslant s_i^k \leqslant b_i \label{fenetrerestant1} \\
 & && \forall i \in J_R \text{ : } a_i \leqslant S_i \leqslant b_i \label{fenetrerestant2} \\[30pt]
-& && \sum \limits_{j \in V} X_{0,j} = 1 \label{partirdudepot} \\
+& && \sum \limits_{j \in V} X_{1,j} = 1 \label{partirdudepot} \\
 & && \forall h \in J \cup P \text{ : } \sum \limits_{i \in V} (X_{ih}) - \sum \limits_{j \in V} (X_{hj}) = 0 \label{flotgros} \\
-& && \sum \limits_{i \in V} X_{i,n+1} = 1 \label{reveniraudepot} \\
-& && \forall i \in J \text{ : } \forall j \in V \text{ : } S_i + t_{ij} + s - M(1-X_{ij}) \leqslant S_j \label{sequentialitegros1} \\
-& && \forall i \in P \text{ : } \forall j \in V \text{ : } S_i + t_{ij} + a - M(1-X_{ij}) \leqslant S_j \label{sequentialitegros2} \\
-& && \forall j \in V \text{ : } S_0 + t_{0j} - M(1-X_{0j}) \leqslant S_j \label{sequentialitegros3} \\
-& && \forall i \in V \text{ : } S_i + t_{i,n+1} - M(1-X_{i,n+1}) \leqslant S_{n+1} \label{sequentialitegros4} \\
-& && S_{n+1} \leqslant e \label{findejournee} \\
+& && \sum \limits_{i \in V} X_{i,1} = 1 \label{reveniraudepot} \\
+& && \forall i \in J \text{ : } \forall j \in V \text{ : } S_i + t_{ij} + sd - M(1-X_{ij}) \leqslant S_j \label{sequentialitegros1} \\
+& && \forall i \in P \text{ : } \forall j \in V \text{ : } S_i + t_{ij} + ta - M(1-X_{ij}) \leqslant S_j \label{sequentialitegros2} \\
+& && \forall j \in V \text{ : } 0 + t_{1j} - M(1-X_{1j}) \leqslant S_j \label{sequentialitegros3} \\
+& && S_{1} \leqslant e \label{findejournee} \\
 & && \forall i \in J_B \text{ : } a_i \leqslant S_i \leqslant b_i \label{fenetregros} \\[30pt]
 & && \forall k \in ]K] \text{ : } \forall j \in P \text{ : } d^k_j \leqslant \sum \limits_{i \in V} X_{ij} \label{separationvalide} \\
 & && \forall k \in ]K] \text{ : } \forall j \in P \text{ : } f^k_j \leqslant \sum \limits_{i \in V} X_{ij} \label{mergevalide} \\
 & && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \sum \limits_{j \in V} x^k_{ij} = d^k_i \label{partirdugros} \\
 & && \forall k \in ]K] \text{ : } \forall h \in J \text{ : } \sum \limits_{i \in V} (x_{ih}^k) - \sum \limits_{j \in V} (x_{hj}^k) = 0 \label{flotpetit} \\
-& && \forall k \in ]K] \text{ : } \forall j \in P \text{ : } \sum \limits_{i \in V} x^k_{ij} = f^k_i \label{reveniraugros} \\
-& && \forall k \in ]K] \text{ : } \forall i \in J \text{ : } \forall j \in V \text{ : } s_i + r*t_{ij} + s - M(1-x_{ij}^k) \leqslant s_j \label{sequentialitepetit1} \\
-& && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \forall j \in V \text{ : } s_i + r*t_{ij} + a - M(1-x_{ij}^k) \leqslant s_j \label{sequentialitepetit2} \\
+& && \forall k \in ]K] \text{ : } \forall j \in P \text{ : } \sum \limits_{i \in V} x^k_{ij} = f^k_j \label{reveniraugros} \\
+& && \forall k \in ]K] \text{ : } \forall i \in J \text{ : } \forall j \in V \text{ : } s_i^k + r*t_{ij} + sd - M(1-x_{ij}^k) \leqslant s_j^k \label{sequentialitepetit1} \\
+& && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \forall j \in V \text{ : } s_i^k + r*t_{ij} + a - M(1-x_{ij}^k) \leqslant s_j^k \label{sequentialitepetit2} \\
 & && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } s_i^k \geqslant S_i - M.(1 - d_i^k) \label{datedebutpetit} \\
 & && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \forall j \in V \text{ : } s_i^k + a + t_{ij} \leqslant S_j + M.(1 - f^k_i) + M.(1 - X_{ij}) \label{datedefinpetit} \\
 & && \forall k \in ]K] \text{ : } \forall i \in J_S \text{ : } a_i \leqslant s_i^k \leqslant b_i \label{fenetrepetit} \\
-& && \forall k \in ]K] \text{ : } \sum \limits_{j \in J} (q_j \sum \limits_{i \in V} x^k_{ij}) \leqslant Q_S  \label{capa} 
+& && \forall k \in ]K] \text{ : } \sum \limits_{j \in J} (q_j \sum \limits_{i \in V} x^k_{ij}) \leqslant Q_S \label{capa}
 \end{align}
 
 \clearpage
 
-Les variables que l'on peut/doit fixer sont :
+Les variables que l'on doit fixer sont :
 \begin{itemize}
-\item $\forall k \in ]K] \text{ : } \forall i \in V : x^k_{i0}, x^k_{0i}, x^k_{i,n+1}, x^k_{n+1,i}, s^k_0, s^k_{n+1} = 0$ car le petit n'interagit pas avec le dépôt
-\item $S_0 = 0$ et $S_{n+1} = e$ car il existe toujours une telle solution optimale
-\item $\forall i \in V \text{ : } X_{i0}, X_{n+1,i} = 0$ car on ne fait que partir de $0$ et que revenir en $n+1$
-\item $\forall k \in ]K] \text{ : } \forall p,p' \in P : x^k_{p,p'} = 0$ car un tel sous circuit est inutile
-\item $\forall k \in ]K] \text{ : } \forall i \in V : x^k_{ii}, X_{ii} = 0$ car cela ne sert à rien
+\item $\forall k \in ]K] \text{ : } \forall i \in V : x^k_{i1}, x^k_{1i}, s^k_1 = 0$ car le petit n'interagit pas avec le dépôt
+\item $\forall i \in V \text{ : }$ enlever $(i,i)$ de V
 \item $\forall k \in ]K] \text{ : } \forall i \in J_B \text{ : } \forall j \in V \text{ : } x^k_{ij}, x^k_{ji} = 0$ car le petit n'a rien à faire chez les gros clients
 \item $\forall i \in J_S \text{ : } \forall j \in V \text{ : } X_{ij}, X_{ji} = 0$ car le gros n'a rien à faire chez les petits clients
-\item $X_{0,n+1} = 0$ si le problème n'est pas trivial
+\item $\forall k in ]K] \text{ : } \forall i,j \in P \text{ : } x_{ij}^k = 0$ car le petit n'a aucun intérêt à aller d'un parking à un autre
 \end{itemize}
 
 Les grandes valeurs à fixer :
 \begin{itemize}
 \item $M = e$ car c'est le plus grand temps possible
-\item $K = |J_S|$ car on ne peut avoir besoin de plus de sous circuits
-\item le nombre de duplication des parkings : K
+\item $K = |J_S|/2$, pour être sûr d'avoir une borne supérieur sur le nombre de tours du petit il faudrait prendre $|J_S| + |J_R|$ mais cela devient vraiment trop prohibitif.
+\item le nombre de duplication des parkings : 2K, car un petit peu finir sa tourné sur le même parking sur lequel il l'a commencé et que pendant ce temps le gros ai aussi fait une tournée
 \end{itemize}
 
 \clearpage
 
-Les contraintes redondantes que l'on peut essayer sont :
+Les contraintes redondantes sont :
 \begin{itemize}
-\item bla
+\item Une contrainte de capacité plus forte pour le petit basé sur les cover maximaux de knapska
 \end{itemize}
 
 
@@ -150,9 +146,17 @@ Les symétries que l'on peut casser sont :
 \item pour les duplications de parkings : forcer à prendre en premiers les première duplications, et dans l'ordre $\Rightarrow$ contraintes sur les $S_i$ et les $X_{ij}$
 \item prendre les premiers sous tours et dans l'ordre :
 \begin{align}
-\forall k \in ]K-1] \text{ : } \forall i,j \in P : d^k_i \geqslant d^{k+1}_j$ \label{symetriesoustours1} \\
-\forall 
+& \forall k \in ]K-1] \text{ : } \forall i,j \in P : s^k_i \leqslant s^{k+1}_j \label{symetriesoustours2}
 \end{align}
+\item utiliser les parking dans l'ordre,i.e copie 1 après l'original, copie 2 après copie 1 ... Autant sur le fait d'utiliser le parking (donc sur les $\sum \limits_{k = 1}^K d_i^k$) que sur leurs dates d'utilisations
 \end{itemize}
+
+\bigskip
+
+Remarque : avec ce modèle quand le petit véhicule rejoint le gros à un parking juste pour se ré-approvisionner on compte le temps d'assemblage 2 fois (assemblage + désassemblage). En effet un ré-approvisionnement est compté comme un nouveau "mini-VRP" du petit dans le modèle.
+
+\bigskip
+
+Remarque : la fonction objectif ne prend pas en compte l'heure à laquelle l'équipe rentre au dépôt. Par conséquent si la contrainte de taille de la journée n'est pas restrictive des temps d’attentes très larges restent optimaux.
 
 \end{document}

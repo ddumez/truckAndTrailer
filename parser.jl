@@ -28,7 +28,7 @@ function parser(instance::String, distancier::String)
 	  end
 	  if(numbers[i,3]=="LS")
 	    nR = nR+1
-	  end 
+	  end
 	  if(numbers[i,1]>max && i>1)
 	    max = numbers[i,1]
 	  end
@@ -39,7 +39,7 @@ function parser(instance::String, distancier::String)
 
 	#constantes grandes a fixer
 	M = e
-	K = floor(Int,nS/2)
+	K = maximum([1,floor(Int,nS/2)])
 
 	#Construction de JS and co
 	J = fill(0,nS + nB + nR)
@@ -47,7 +47,7 @@ function parser(instance::String, distancier::String)
 	JB = fill(0,nB)
 	JR = fill(0,nR)
 	P = fill(0,nP)
-#= Ce doit etre des dictionaires car il y a des trous	
+#= Ce doit etre des dictionaires car il y a des trous
 	V = collect(1:max) #plus 1 parceque D
 	q = fill(0,nS + nB + nR)
 	a = fill(0,nS + nB + nR)
@@ -115,18 +115,21 @@ function parser(instance::String, distancier::String)
 	cB = Dict(E[i] => dist[E[i][1],E[i][2]] for i = 1:size(E)[1])
 	cS = Dict(E[i] => dist[E[i][1],E[i][2]]*r for i = 1:size(E)[1])
 	#println(cS[(84,98)])
-	
+
 	#Copie des parkings
 	P2 = copy(P)
 
 	compte = max+1
 
+  println("Copies des parkings : ")
 	for i in P
-		for k in 1:(K-1)
+    print("- ",i," : ")
+		for k in 1:(2K-1) #-1 car deja le parking original
 			copieinumk = compte
 			compte = compte+1
 			push!(P2,copieinumk)
 			push!(V,copieinumk)
+      print(copieinumk,", ")
 			for j in V
 				if (i,j) in E
 					push!(E,(copieinumk,j))
@@ -144,6 +147,7 @@ function parser(instance::String, distancier::String)
 				end
 			end
 		end
+    print("\n")
 	end
 	P = copy(P2)
 

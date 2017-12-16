@@ -98,7 +98,7 @@ Les contraintes sont :
 & && \forall h \in J \cup P \text{ : } \sum \limits_{i \in V} (X_{ih}) - \sum \limits_{j \in V} (X_{hj}) = 0 \label{flotgros} \\
 & && \sum \limits_{i \in V} X_{i,1} = 1 \label{reveniraudepot} \\
 & && \forall i \in J \text{ : } \forall j \in V \text{ : } S_i + t_{ij} + sd - M(1-X_{ij}) \leqslant S_j \label{sequentialitegros1} \\
-& && \forall i \in P \text{ : } \forall j \in V \text{ : } S_i + t_{ij} + a - M(1-X_{ij}) \leqslant S_j \label{sequentialitegros2} \\
+& && \forall i \in P \text{ : } \forall j \in V \text{ : } S_i + t_{ij} + ta - M(1-X_{ij}) \leqslant S_j \label{sequentialitegros2} \\
 & && \forall j \in V \text{ : } 0 + t_{1j} - M(1-X_{1j}) \leqslant S_j \label{sequentialitegros3} \\
 & && S_{1} \leqslant e \label{findejournee} \\
 & && \forall i \in J_B \text{ : } a_i \leqslant S_i \leqslant b_i \label{fenetregros} \\[30pt]
@@ -112,7 +112,7 @@ Les contraintes sont :
 & && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } s_i^k \geqslant S_i - M.(1 - d_i^k) \label{datedebutpetit} \\
 & && \forall k \in ]K] \text{ : } \forall i \in P \text{ : } \forall j \in V \text{ : } s_i^k + a + t_{ij} \leqslant S_j + M.(1 - f^k_i) + M.(1 - X_{ij}) \label{datedefinpetit} \\
 & && \forall k \in ]K] \text{ : } \forall i \in J_S \text{ : } a_i \leqslant s_i^k \leqslant b_i \label{fenetrepetit} \\
-& && \forall k \in ]K] \text{ : } \sum \limits_{j \in J} (q_j \sum \limits_{i \in V} x^k_{ij}) \leqslant Q_S  \label{capa} 
+& && \forall k \in ]K] \text{ : } \sum \limits_{j \in J} (q_j \sum \limits_{i \in V} x^k_{ij}) \leqslant Q_S \label{capa}
 \end{align}
 
 \clearpage
@@ -123,21 +123,21 @@ Les variables que l'on doit fixer sont :
 \item $\forall i \in V \text{ : }$ enlever $(i,i)$ de V
 \item $\forall k \in ]K] \text{ : } \forall i \in J_B \text{ : } \forall j \in V \text{ : } x^k_{ij}, x^k_{ji} = 0$ car le petit n'a rien à faire chez les gros clients
 \item $\forall i \in J_S \text{ : } \forall j \in V \text{ : } X_{ij}, X_{ji} = 0$ car le gros n'a rien à faire chez les petits clients
-\item $X_{0,n+1} = 0$ si le problème n'est pas trivial
+\item $\forall k in ]K] \text{ : } \forall i,j \in P \text{ : } x_{ij}^k = 0$ car le petit n'a aucun intérêt à aller d'un parking à un autre
 \end{itemize}
 
 Les grandes valeurs à fixer :
 \begin{itemize}
 \item $M = e$ car c'est le plus grand temps possible
-\item $K = |J_S|/2$, pour être sûr d'avoir une borne supérieur sur le nombre de tours du petit il faudrai prendre $|J_S| + |J_R|$ mais cela devient vraiment trop prohibitif.
-\item le nombre de duplication des parkings : K
+\item $K = |J_S|/2$, pour être sûr d'avoir une borne supérieur sur le nombre de tours du petit il faudrait prendre $|J_S| + |J_R|$ mais cela devient vraiment trop prohibitif.
+\item le nombre de duplication des parkings : 2K, car un petit peu finir sa tourné sur le même parking sur lequel il l'a commencé et que pendant ce temps le gros ai aussi fait une tournée
 \end{itemize}
 
 \clearpage
 
-Les contraintes redondantes que l'on peut essayer sont :
+Les contraintes redondantes sont :
 \begin{itemize}
-\item bla
+\item Une contrainte de capacité plus forte pour le petit basé sur les cover maximaux de knapsack. Un cover est un ensemble d'objet qui respecte la capacité, il est dit maximal si lui ajouter un objet fait dépasser la capacité. On adapte cela à chaque tournée de petit en générant des covers maximaux de clients. Alors pour chaque covers et chaque objet qui ne s'y trouve pas on interdit que le petit se rende (dans la même tourné) dans cet ensemble de client.
 \end{itemize}
 
 
@@ -150,5 +150,13 @@ Les symétries que l'on peut casser sont :
 \end{align}
 \item utiliser les parking dans l'ordre,i.e copie 1 après l'original, copie 2 après copie 1 ... Autant sur le fait d'utiliser le parking (donc sur les $\sum \limits_{k = 1}^K d_i^k$) que sur leurs dates d'utilisations
 \end{itemize}
+
+\bigskip
+
+Remarque : avec ce modèle quand le petit véhicule rejoint le gros à un parking juste pour se ré-approvisionner on compte le temps d'assemblage 2 fois (assemblage + désassemblage). En effet un ré-approvisionnement est compté comme un nouveau "mini-VRP" du petit dans le modèle.
+
+\bigskip
+
+Remarque : la fonction objectif ne prend pas en compte l'heure à laquelle l'équipe rentre au dépôt. Par conséquent si la contrainte de taille de la journée n'est pas restrictive des temps d’attentes très larges restent optimaux.
 
 \end{document}

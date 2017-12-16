@@ -5,16 +5,20 @@ using GLPKMathProgInterface
 using GLPK
 #pour resoudre avec CPLEX
 # export LD_LIBRARY_PATH="/usr/local/opt/cplex/cplex/bin/x86-64_linux":$LD_LIBRARY_PATH
-#using CPLEX
+using CPLEX
 
-m = Model(solver=GLPKSolverMIP())
-#m = Model(solver=CplexSolver())
+#m = Model(solver=GLPKSolverMIP())
+m = Model(solver=CplexSolver())
 
 #data
 include("parser.jl")
 
 #(n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, sd, ta, r, M, K) = parser("instanceNantes/instanceNantes.txt", "instanceNantes/distancematrix98.txt")
 (n, J, JS, JB, JR, P, V, E, q, Qs, cB, cS, t, a, b, e, sd, ta, r, M, K, max) = parser("instanceNantes/test.txt", "instanceNantes/distancematrix98.txt")
+
+#calcul des covers
+include("maximalCover.jl")
+R = genereMaxCover(JS,JR,q,Qs)
 
 #variable
 @variable(m, X[E], Bin)
@@ -29,28 +33,45 @@ include("parser.jl")
 
 #variables fixées
 for k=1:K
-    for i in union(J,P)
+    #pas d'interaction avec le depot
+    for i in V
         JuMP.fix(x[k,(1,i)], false)
         JuMP.fix(x[k,(i,1)], false)
     end
+    JuMP.fix(s[k,1], 0)
+
+    #pas d'interactions avec les clients du gros
     for i in V
         for j in JB
             JuMP.fix(x[k,(i,j)], false)
             JuMP.fix(x[k,(j,i)], false)
         end
-        JuMP.fix(x[k,(i,1)], false)
     end
-    JuMP.fix(s[k,1], 0)
     for j in JB
         JuMP.fix(s[k,j], 0)
+    end
+
+    #ne pas aller d'un parking a un parking
+    for i in P
+        for j in P
+            JuMP.fix(x[k,(i,j)], false)
+        end
+    end
+
+    #pas de boucles
+    for i in V
+        JuMP.fix(x[k, (i,i)], false)
     end
 end
 
 for i in V
+    #pas d'interactions avec les clients du petit
     for j in JS
         JuMP.fix(X[(i,j)], false)
         JuMP.fix(X[(j,i)], false)
     end
+
+    #pas de boucles
     JuMP.fix(X[(i,i)], false)
 end
 
@@ -181,7 +202,16 @@ for k = 1:K
 
     #capa
     @constraint(m, sum(q[j] * sum(x[k,(i,j)] for i in V) for j in J ) <= Qs)
+
+    #formulation forte des capacites a base de cover maximaux
+    for cur in R
+        for i in filter(x-> !(x in cur) ,union(JS,JR))
+            @constraint(m, sum(sum(x[k,(h,j)] for j in V) for h in union(cur,[i])) <= size(cur)[1])
+        end
+    end
+
 end
+
 
 #cassage de symetrie entre les different sous tours possible du petit
 for k = 1:(K-1)
@@ -206,6 +236,7 @@ end
 
 #affichage
 solve(m)
+#=
 println(getobjectivevalue(m))
 println(getvalue(X))
 println(getvalue(S))
@@ -213,3 +244,70 @@ println(getvalue(x))
 println(getvalue(s))
 println(getvalue(d))
 println(getvalue(f))
+=#
+println("\n================================================================================\n")
+println("Valeur de la fonction objectif : ", getobjectivevalue(m))
+
+print("Route suivie par le gros : 1(0) -> ")
+#on trouve la première destination
+parc = 1
+for i in V
+    if getvalue(X)[(1,i)] > 0.9 #pas == 1 car des fois les solveurs font renvoient 0.99999999 au lieu de 1
+        parc = i
+        break
+    end
+end
+#determination du reste de la tournée
+while parc != 1
+    print(parc,"(",getvalue(S)[parc],") -> ")
+    for i in V
+        if getvalue(X)[(parc,i)] > 0.9
+            parc = i
+            break
+        end
+    end
+end
+println("1(",getvalue(S)[1],")\n")
+
+println("Routes suivies par le petit : ")
+for k = 1:K
+    if sum(getvalue(d)[k,i] for i in P) > 0 #on a utilisé ce sous-tours
+        #on determine le parking de départ de cette tourné
+        parc = 1
+        for i in P
+            if getvalue(d)[k,i] > 0.9
+                parc = i
+                break
+            end
+        end
+        #on determine le parking de fin de cette tournée
+        fin = 1
+        for i in P
+            if getvalue(f)[k,i] > 0.9
+                fin = i
+                break
+            end
+        end
+        #determination de la tourné numero k
+        print("\t",parc,"(",getvalue(s)[k,parc],")")
+        for i in V #premier pas traité a part au cas ou parc==fin
+            if getvalue(x)[k,(parc,i)] > 0.9
+                parc = i
+                break
+            end
+        end
+        while parc != fin
+            print(" -> ",parc,"(",getvalue(s)[k,parc],")")
+            for i in V
+                if getvalue(x)[k,(parc,i)] > 0.9
+                    parc = i
+                    break
+                end
+            end
+        end
+        print(" -> ",parc,"(",getvalue(s)[k,parc],")") #pour la fin
+    else
+        break #grace au cassage de symetrie on sait que les suivant ne sont pas utilisé
+    end
+end
+println("\n")
